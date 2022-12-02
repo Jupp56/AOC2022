@@ -1,4 +1,6 @@
-use std::{fs::File, io::BufRead, path::Path};
+use std::path::Path;
+
+use util::process_file_linewise;
 
 fn main() {
     println!("{}", count_calories("./input"));
@@ -38,7 +40,7 @@ fn count_calories<P: AsRef<Path>>(file: P) -> u64 {
 
     let mut current_tally = 0;
 
-    process_lines(file, |line, content| {
+    process_file_linewise(file, |line, content| {
         if content.trim().is_empty() {
             leaderboard.update(current_tally);
             current_tally = 0;
@@ -62,33 +64,4 @@ fn count_calories<P: AsRef<Path>>(file: P) -> u64 {
     println!("Leaderboard: {:#?}", leaderboard);
 
     leaderboard.sum()
-}
-
-/// Processes a line, taking a closure with arguments line number and line content as argument.
-fn process_lines<P: AsRef<Path>, F: FnMut(usize, String)>(file: P, mut processor: F) {
-    let lines = match read_lines(&file) {
-        Ok(lines) => lines,
-        Err(error) => {
-            panic!("Could not open file {:?}, Error: {error}!", file.as_ref());
-        }
-    };
-
-    for (line_number, line) in lines.enumerate() {
-        match line {
-            Ok(content) => {
-                processor(line_number, content);
-            }
-            Err(error) => {
-                println!("Could not read line {line_number}, error: {error}");
-            }
-        }
-    }
-}
-
-fn read_lines<P>(filename: P) -> std::io::Result<std::io::Lines<std::io::BufReader<File>>>
-where
-    P: AsRef<Path>,
-{
-    let file = File::open(filename)?;
-    Ok(std::io::BufReader::new(file).lines())
 }
